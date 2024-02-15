@@ -102,48 +102,41 @@ def _is_dead_end(state):
             ):
                 sides_blocked += 1
 
-        return sides_blocked >= 3
+        return sides_blocked >= 2
 
-    def has_no_storage_along_edge(box_x, box_y):
+ 
+    def has_no_storage_along_edge(box_x, box_y, width, height, storage):
         """
         Check if a box is positioned at the edge of the grid and there are no storage spaces along that edge where the box could be moved to.
 
         Args:
         - box_x (int): The x-coordinate of the box.
         - box_y (int): The y-coordinate of the box.
+        - width (int): The width of the grid.
+        - height (int): The height of the grid.
+        - storage (set): A set containing coordinates of storage spaces.
 
         Returns:
         - True if the box is positioned at the edge and there are no storage spaces along that edge, False otherwise.
         """
-        if (
-            box_x == 0
-            or box_x == state.width - 1
-            or box_y == 0
-            or box_y == state.height - 1
-        ):
-            # Box is positioned at the edge
-            if box_x == 0 and all(
-                (box_x, y) not in state.storage for y in range(state.height)
-            ):
+        # Check if the box is at the edge of the grid
+        if box_x == 0 or box_x == width - 1 or box_y == 0 or box_y == height - 1:
+            # Check if there are storage spaces along the edge
+            if (box_x == 0 and any((box_x - 1, box_y) in storage for box_y in range(height))) or \
+               (box_x == width - 1 and any((box_x + 1, box_y) in storage for box_y in range(height))) or \
+               (box_y == 0 and any((box_x, box_y - 1) in storage for box_x in range(width))) or \
+               (box_y == height - 1 and any((box_x, box_y + 1) in storage for box_x in range(width))):
+                return False
+            else:
                 return True
-            if box_x == state.width - 1 and all(
-                (box_x, y) not in state.storage for y in range(state.height)
-            ):
-                return True
-            if box_y == 0 and all(
-                (x, box_y) not in state.storage for x in range(state.width)
-            ):
-                return True
-            if box_y == state.height - 1 and all(
-                (x, box_y) not in state.storage for x in range(state.height)
-            ):
-                return True
-        return False
+        else:
+            return False
+
 
     # Iterate over each box position
     for box_x, box_y in state.boxes:
         if is_surrounded_by_obstacles(box_x, box_y) or has_no_storage_along_edge(
-            box_x, box_y
+            box_x, box_y, state.width, state.height, state.storage
         ):
             return True  # Dead end found
 
@@ -177,10 +170,10 @@ def heur_alternate(state: SokobanState):
 
     # Deadend checks
     # Prune paths
-    if _is_dead_end(state):
-        # print(state.state_string())
-        return math.inf
-    #
+    # if _is_dead_end(state):
+    #     # print(state.state_string())
+    #     return math.inf
+    # #
     total_score += _hungarian_matching(state.boxes, state.robots)
     total_score += _hungarian_matching(state.boxes, state.storage)
 
