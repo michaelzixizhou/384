@@ -281,12 +281,11 @@ def iterative_astar(
     stop_time = timebound + os.times()[0]
 
     path = None
-    cost_bound = None
     best_gval = math.inf
     best_path = None
     best_path_stats = None
     ...
-    while os.times()[0] - start_time < timebound:
+    while os.times()[0] - start_time < timebound - 0.1:
         remaining_time = timebound - (os.times()[0] - start_time)
         fvalfunc = lambda sN: fval_function(sN, weight)
 
