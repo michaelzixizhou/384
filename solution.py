@@ -74,7 +74,7 @@ def _is_dead_end(state):
 
     """
 
-    def is_surrounded_by_obstacles(box_x, box_y):
+    def is_surrounded_by_obstacles(box_x, box_y, state):
         """
         Check if the box at the given position is completely surrounded by obstacles, walls, or other boxes.
 
@@ -87,19 +87,20 @@ def _is_dead_end(state):
         """
 
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+
         sides_blocked = 0
+
         for dx, dy in directions:
+            if (box_x, box_y) in state.storage:
+                return False
+
             new_x, new_y = box_x + dx, box_y + dy
-            if (
-                (new_x, new_y) in state.obstacles
-                or (
-                    new_x < 0
-                    or new_x >= state.width
-                    or new_y < 0
-                    or new_y >= state.height
-                )
-            ):
+
+            if (new_x, new_y) in state.obstacles or \
+                    (new_x < 0 or new_x >= state.width or 
+                     new_y < 0 or new_y >= state.height):
                 sides_blocked += 1
+
 
         return sides_blocked >= 2
 
@@ -114,6 +115,9 @@ def _is_dead_end(state):
         Returns:
         - bool: True if the box is positioned at the edge with no adjacent storage spaces, False otherwise.
         """
+        if (box_x, box_y) in state.storage:
+            return False
+
         if (box_x == 0 or box_x == state.width - 1) or (
             box_y == 0 or box_y == state.height - 1
         ):
@@ -152,7 +156,7 @@ def _is_dead_end(state):
 
     # Iterate over each box position
     for box_x, box_y in state.boxes:
-        if is_surrounded_by_obstacles(box_x, box_y) or has_no_storage_along_edge(
+        if is_surrounded_by_obstacles(box_x, box_y, state) or has_no_storage_along_edge(
             box_x, box_y
         ):
             return True  # Dead end found
@@ -187,9 +191,9 @@ def heur_alternate(state: SokobanState):
 
     # Deadend checks
     # Prune paths
-    if _is_dead_end(state):
-        # print(state.state_string())
-        return math.inf
+    # if _is_dead_end(state):
+    #     # print(state.state_string())
+    #     return math.inf
     #
     total_score += _hungarian_matching(state.boxes, state.robots)
     total_score += _hungarian_matching(state.boxes, state.storage)
