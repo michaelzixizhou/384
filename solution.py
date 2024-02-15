@@ -92,8 +92,8 @@ def _is_dead_end(state):
             new_x, new_y = box_x + dx, box_y + dy
             if (
                 (new_x, new_y) in state.obstacles
-                and (new_x, new_y) in state.boxes
-                and (
+                or (new_x, new_y) in state.boxes
+                or (
                     new_x < 0
                     or new_x >= state.width
                     or new_y < 0
@@ -102,41 +102,59 @@ def _is_dead_end(state):
             ):
                 sides_blocked += 1
 
-        return sides_blocked >= 2
+        return sides_blocked >= 3
 
- 
-    def has_no_storage_along_edge(box_x, box_y, width, height, storage):
+    def has_no_storage_along_edge(box_x, box_y):
         """
-        Check if a box is positioned at the edge of the grid and there are no storage spaces along that edge where the box could be moved to.
+        Checks if a box is positioned at the edge of the grid with no adjacent storage spaces along that edge.
 
         Args:
         - box_x (int): The x-coordinate of the box.
         - box_y (int): The y-coordinate of the box.
-        - width (int): The width of the grid.
-        - height (int): The height of the grid.
-        - storage (set): A set containing coordinates of storage spaces.
 
         Returns:
-        - True if the box is positioned at the edge and there are no storage spaces along that edge, False otherwise.
+        - bool: True if the box is positioned at the edge with no adjacent storage spaces, False otherwise.
         """
-        # Check if the box is at the edge of the grid
-        if box_x == 0 or box_x == width - 1 or box_y == 0 or box_y == height - 1:
-            # Check if there are storage spaces along the edge
-            if (box_x == 0 and any((box_x - 1, box_y) in storage for box_y in range(height))) or \
-               (box_x == width - 1 and any((box_x + 1, box_y) in storage for box_y in range(height))) or \
-               (box_y == 0 and any((box_x, box_y - 1) in storage for box_x in range(width))) or \
-               (box_y == height - 1 and any((box_x, box_y + 1) in storage for box_x in range(width))):
-                return False
-            else:
+        if (box_x == 0 or box_x == state.width - 1) or (
+            box_y == 0 or box_y == state.height - 1
+        ):
+            if (
+                (
+                    box_x == 0
+                    and all(
+                        (box_x, box_y) not in state.storage
+                        for box_y in range(state.height)
+                    )
+                )
+                or (
+                    box_x == state.width - 1
+                    and all(
+                        (box_x, box_y) not in state.storage
+                        for box_y in range(state.height)
+                    )
+                )
+                or (
+                    box_y == 0
+                    and all(
+                        (box_x, box_y) not in state.storage
+                        for box_x in range(state.width)
+                    )
+                )
+                or (
+                    box_y == state.height - 1
+                    and all(
+                        (box_x, box_y) not in state.storage
+                        for box_x in range(state.width)
+                    )
+                )
+            ):
                 return True
-        else:
-            return False
-
+        return False
 
     # Iterate over each box position
     for box_x, box_y in state.boxes:
         if is_surrounded_by_obstacles(box_x, box_y) or has_no_storage_along_edge(
-            box_x, box_y, state.width, state.height, state.storage
+            box_x, box_y
         ):
             return True  # Dead end found
 
@@ -278,8 +296,8 @@ def iterative_astar(
     best_gval = math.inf
     best_path = None
     best_path_stats = None
-    ...
-    while os.times()[0] - start_time < timebound - 0.1:
+
+    while os.times()[0] - start_time < timebound:
         remaining_time = timebound - (os.times()[0] - start_time)
         fvalfunc = lambda sN: fval_function(sN, weight)
 
@@ -288,7 +306,6 @@ def iterative_astar(
         if weight * 0.5 >= 1:
             weight *= 0.5
         if not path:
-            weight *= 2
             continue
 
         curr_total_gval = _get_total_gval(path)
@@ -308,4 +325,27 @@ def iterative_gbfs(initial_state, heur_fn, timebound=5):  # only use h(n)
     """INPUT: a sokoban state that represents the start state and a timebound (number of seconds)"""
     """OUTPUT: A goal state (if a goal is found), else False"""
     """implementation of iterative gbfs algorithm"""
-    return None, None  # CHANGE THIS
+
+    se = SearchEngine("custom")
+
+    start_time = os.times()[4]
+    cost_bound = None
+    best_gval = math.inf
+    best_path = None
+    best_path_stats = None
+
+
+    se.init_search(initial_state, sokoban_goal_state, heur_fn)
+
+    while os.times()[4] - start_time < timebound:
+        remaining_time = timebound - (os.times()[4] - start_time)
+        path, stats = se.search(remaining_time, cost_bound)
+        
+        if path:
+            best_gval = min(best_gval, _get_total_gval(path))
+            cost_bound = [best_gval, math.inf, math.inf]
+            best_path = path
+            best_path_stats = stats
+
+    
+    return best_path, best_path_stats  # CHANGE THIS
