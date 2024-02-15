@@ -85,15 +85,14 @@ def _is_dead_end(state):
         Returns:
         - True if the box is surrounded, False otherwise.
         """
+        if (box_x, box_y) in state.storage:
+            return False
 
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
 
         sides_blocked = 0
 
         for dx, dy in directions:
-            if (box_x, box_y) in state.storage:
-                return False
-
             new_x, new_y = box_x + dx, box_y + dy
 
             if (new_x, new_y) in state.obstacles or \
