@@ -285,12 +285,13 @@ def iterative_astar(
     best_gval = math.inf
     best_path = None
     best_path_stats = None
-
+    ...
     while os.times()[0] - start_time < timebound:
+        remaining_time = timebound - (os.times()[0] - start_time)
         fvalfunc = lambda sN: fval_function(sN, weight)
 
         se.init_search(initial_state, sokoban_goal_state, heur_fn, fvalfunc)
-        path, stats = se.search(stop_time - start_time, cost_bound)
+        path, stats = se.search(remaining_time, (math.inf, math.inf, best_gval))
 
         if weight * 0.5 >= 1:
             weight *= 0.5
@@ -304,7 +305,6 @@ def iterative_astar(
             best_path = path
             best_path_stats = stats
 
-        cost_bound = (math.inf, math.inf, best_gval)
     print(f"{best_gval}, {weight}")
 
     return best_path, best_path_stats  # CHANGE THIS
