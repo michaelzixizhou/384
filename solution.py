@@ -92,7 +92,6 @@ def _is_dead_end(state):
             new_x, new_y = box_x + dx, box_y + dy
             if (
                 (new_x, new_y) in state.obstacles
-                or (new_x, new_y) in state.boxes
                 or (
                     new_x < 0
                     or new_x >= state.width
@@ -102,7 +101,7 @@ def _is_dead_end(state):
             ):
                 sides_blocked += 1
 
-        return sides_blocked >= 3
+        return sides_blocked >= 2
 
     def has_no_storage_along_edge(box_x, box_y):
         """
@@ -188,11 +187,11 @@ def heur_alternate(state: SokobanState):
 
     # Deadend checks
     # Prune paths
-    # if _is_dead_end(state):
-    #     # print(state.state_string())
-    #     return math.inf
-    # #
-    # total_score += _hungarian_matching(state.boxes, state.robots)
+    if _is_dead_end(state):
+        # print(state.state_string())
+        return math.inf
+    #
+    total_score += _hungarian_matching(state.boxes, state.robots)
     total_score += _hungarian_matching(state.boxes, state.storage)
 
     return total_score  # TODO:
