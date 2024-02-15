@@ -87,20 +87,22 @@ def _is_dead_end(state):
         """
 
         directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        sides_blocked = 0
         for dx, dy in directions:
             new_x, new_y = box_x + dx, box_y + dy
             if (
-                (new_x, new_y) not in state.obstacles
-                and (new_x, new_y) not in state.boxes
-                and not (
+                (new_x, new_y) in state.obstacles
+                and (new_x, new_y) in state.boxes
+                and (
                     new_x < 0
                     or new_x >= state.width
                     or new_y < 0
                     or new_y >= state.height
                 )
             ):
-                return False
-        return True
+                sides_blocked += 1
+
+        return sides_blocked >= 3
 
     def has_no_storage_along_edge(box_x, box_y):
         """
@@ -121,19 +123,19 @@ def _is_dead_end(state):
         ):
             # Box is positioned at the edge
             if box_x == 0 and all(
-                (box_x - 1, box_y) not in state.storage for box_x in range(state.width)
+                (box_x, y) not in state.storage for y in range(state.height)
             ):
                 return True
             if box_x == state.width - 1 and all(
-                (box_x + 1, box_y) not in state.storage for box_x in range(state.width)
+                (box_x, y) not in state.storage for y in range(state.height)
             ):
                 return True
             if box_y == 0 and all(
-                (box_x, box_y - 1) not in state.storage for box_y in range(state.height)
+                (x, box_y) not in state.storage for x in range(state.width)
             ):
                 return True
             if box_y == state.height - 1 and all(
-                (box_x, box_y + 1) not in state.storage for box_y in range(state.height)
+                (x, box_y) not in state.storage for x in range(state.height)
             ):
                 return True
         return False
@@ -175,9 +177,9 @@ def heur_alternate(state: SokobanState):
 
     # Deadend checks
     # Prune paths
-    # if _is_dead_end(state):
-    #     # print(state.state_string())
-    #     return math.inf
+    if _is_dead_end(state):
+        # print(state.state_string())
+        return math.inf
     #
     total_score += _hungarian_matching(state.boxes, state.robots)
     total_score += _hungarian_matching(state.boxes, state.storage)
@@ -278,7 +280,6 @@ def iterative_astar(
     se = SearchEngine("custom")
 
     start_time = os.times()[0]
-    stop_time = timebound + os.times()[0]
 
     path = None
     best_gval = math.inf
@@ -291,11 +292,10 @@ def iterative_astar(
 
         se.init_search(initial_state, sokoban_goal_state, heur_fn, fvalfunc)
         path, stats = se.search(remaining_time, (math.inf, math.inf, best_gval))
-
         if weight * 0.5 >= 1:
             weight *= 0.5
         if not path:
-            # weight *= 0.95
+            weight *= 2
             continue
 
         curr_total_gval = _get_total_gval(path)
