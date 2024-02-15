@@ -290,15 +290,15 @@ def iterative_astar(
     # the cost of the best goal path found so far
     se = SearchEngine("custom")
 
-    start_time = os.times()[0]
+    start_time = os.times()[4]
 
     path = None
     best_gval = math.inf
     best_path = None
     best_path_stats = None
 
-    while os.times()[0] - start_time < timebound:
-        remaining_time = timebound - (os.times()[0] - start_time)
+    while os.times()[4] - start_time < timebound - 0.1:
+        remaining_time = timebound - (os.times()[4] - start_time)
         fvalfunc = lambda sN: fval_function(sN, weight)
 
         se.init_search(initial_state, sokoban_goal_state, heur_fn, fvalfunc)
@@ -337,7 +337,7 @@ def iterative_gbfs(initial_state, heur_fn, timebound=5):  # only use h(n)
 
     se.init_search(initial_state, sokoban_goal_state, heur_fn)
 
-    while os.times()[4] - start_time < timebound:
+    while os.times()[4] - start_time < timebound - 0.1:
         remaining_time = timebound - (os.times()[4] - start_time)
         path, stats = se.search(remaining_time, cost_bound)
         
