@@ -42,7 +42,7 @@ def _hungarian_matching(objects1, objects2):
 
     # Iterate through each object and find the closest available object
     for _ in range(len(objects1)):
-        min_val = float("inf")
+        min_val = math.inf
         min_obj1_idx = -1
         min_obj2_idx = -1
         for i in range(len(objects1)):
@@ -192,7 +192,7 @@ def heur_alternate(state: SokobanState):
     #     # print(state.state_string())
     #     return math.inf
     # #
-    total_score += _hungarian_matching(state.boxes, state.robots)
+    # total_score += _hungarian_matching(state.boxes, state.robots)
     total_score += _hungarian_matching(state.boxes, state.storage)
 
     return total_score  # TODO:
